@@ -1,37 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// TODO: Implement actual API endpoints for fact sheet operations
-// Interview candidates should connect these endpoints to a real database or external API
+const API = process.env.API_FACTSHEET!;
+const REVALIDATE = 60;
 
-// GET /api/insight/fact-sheet (Get fact sheet by ID or list all fact sheets)
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const factSheetId = searchParams.get('id');
-  const offset = searchParams.get('offset');
-  const limit = searchParams.get('limit');
-  const dataGroupId = searchParams.get('data_group_id');
-  
-  console.log('GET /api/insight/fact-sheet - params:', {
-    factSheetId,
-    offset,
-    limit,
-    dataGroupId
-  });
-  
-  // TODO: Implement fact sheet retrieval logic
-  // If ID is provided, get specific fact sheet
-  // If no ID provided, get list of all fact sheets with optional parameters
-  
-  return NextResponse.json(
-    { 
-      message: 'TODO: Implement fact sheet retrieval',
-      requestedParams: { factSheetId, offset, limit, dataGroupId },
-      // Mock response structure for list:
-      // data: [],
-      // total: 0,
-      // offset: parseInt(offset || '0'),
-      // limit: parseInt(limit || '10')
-    },
-    { status: 501 } // Not Implemented
-  );
+  try {
+    const sp = req.nextUrl.searchParams;
+    const id = sp.get('id');
+
+    if (id) {
+      const url = new URL(`${API}/api/v1/fact_sheet/${id}`);
+      url.searchParams.set('user_id', sp.get('user_id') ?? '1');
+      const res = await fetch(url, { next: { revalidate: REVALIDATE } });
+      const body = await res.json();
+      return NextResponse.json(body, { status: res.status });
+    }
+
+    const url = new URL(`${API}/api/v1/fact_sheet/`);
+    for (const key of ['offset', 'limit', 'user_id', 'data_group_id']) {
+      const v = sp.get(key);
+      if (v != null) url.searchParams.set(key, v);
+    }
+    if (!url.searchParams.has('user_id')) url.searchParams.set('user_id', '1');
+
+    const res = await fetch(url, { next: { revalidate: REVALIDATE } });
+    const body = await res.json();
+    return NextResponse.json(body, { status: res.status });
+  } catch (e: any) {
+    return NextResponse.json({ message: e.message ?? 'Proxy error' }, { status: 500 });
+  }
 }

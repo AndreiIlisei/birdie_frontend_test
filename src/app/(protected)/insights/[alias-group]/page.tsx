@@ -7,6 +7,8 @@ import { DataGroupResponse, FactSheetResponse } from '@/types';
 import { FactSheetCard } from '../_components/FactSheetCard';
 
 export default function AliasGroupPage() {
+
+  
   const [dataGroup, setDataGroup] = useState<DataGroupResponse | null>(null);
   const [factSheets, setFactSheets] = useState<FactSheetResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +53,7 @@ export default function AliasGroupPage() {
           // Fetch fact sheets for this data group
           try {
             const factSheetsResponse = await listFactSheets(0, 100, foundGroup.id);
-            setFactSheets(factSheetsResponse);
+            setFactSheets(factSheetsResponse.items);
             console.log('Fact sheets for data group:', foundGroup.id, factSheetsResponse);
           } catch (factSheetsError) {
             console.error('Error fetching fact sheets:', factSheetsError);

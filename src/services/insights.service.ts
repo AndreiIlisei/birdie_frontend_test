@@ -1,65 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { DataGroupResponse, DataGroupsArrayResponse, FactSheetResponse } from '@/types';
+import { DataGroupResponse, FactSheetResponse } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_FACTSHEET;
+type ListEnvelope<T> = { results: T[] } | T[];
 
-if (!API_URL) {
-  throw new Error('Missing API base URL');
+type GroupsEnvelope = {
+  data: DataGroupResponse[];
+  hasNext?: boolean;
+  limit: number;
+  offset: number;
+  total: number | null;
+};
+
+function unwrap<T>(raw: ListEnvelope<T>): T[] {
+  return Array.isArray(raw) ? raw : (raw?.results ?? []);
 }
 
-// UTIL TO FETCH JSON FROM API
 async function fetchJson<T>(url: string): Promise<T> {
-  try {
-    const res = await fetch(url, {
-      // With Next.js App Router you can hint caching
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) {
-      throw new Error(`API error ${res.status}: ${res.statusText}`);
-    }
-    return res.json() as Promise<T>;
-  } catch (err) {
-    console.error('Fetch error:', err);
-    throw err;
-  }
+  const res = await fetch(url, { next: { revalidate: 60 } });
+  if (!res.ok) throw new Error(`API error ${res.status}: ${res.statusText}`);
+  return res.json() as Promise<T>;
 }
 
-export const listDataGroups = async (
-  offset: number = 0,
-  limit: number = 10
-): Promise<DataGroupsArrayResponse> => {
-  return fetchJson<DataGroupsArrayResponse>(
-    `${API_URL}/data_group/?offset=${offset}&limit=${limit}&user_id=1`
-  );
-};
-
-export const getDataGroup = async (id: number): Promise<DataGroupResponse> => {
-  // API doesn’t expose single /data_group/:id (only list),
-  // so fetch all and find locally
-  const all = await listDataGroups(0, 100);
-
-  const found = (all as any).results?.find((g: DataGroupResponse) => g.id === id);
-  if (!found) throw new Error(`Data group with id ${id} not found`);
-  return found;
-};
+export async function listDataGroups(offset = 0, limit = 100): Promise<DataGroupResponse[]> {
+  const url = `/api/insight/data-group?offset=${offset}&limit=${limit}&user_id=1`;
+  const env = await fetchJson<GroupsEnvelope>(url);
+  return env.data ?? [];
+}
 
 export async function listFactSheets(
   offset = 0,
-  limit = 100,
+  limit = 20,
   data_group_id?: number
-): Promise<FactSheetResponse[]> {
-  const url = new URL(`${API_URL}/fact_sheet/`);
-  url.searchParams.set('offset', String(offset));
-  url.searchParams.set('limit', String(limit));
-  url.searchParams.set('user_id', '1');
+): Promise<{ items: FactSheetResponse[]; hasNext: boolean; offset: number; limit: number }> {
+  const params = new URLSearchParams({
+    offset: String(offset),
+    limit: String(limit),
+    user_id: '1',
+  });
+  if (data_group_id) params.set('data_group_id', String(data_group_id));
 
-  if (data_group_id) url.searchParams.set('data_group_id', String(data_group_id));
-
-  const data = await fetchJson<FactSheetResponse[]>(url.toString());
-
-  return data;
+  const raw = await fetchJson<ListEnvelope<FactSheetResponse>>(`/api/insight/fact-sheet?${params}`);
+  const items = unwrap(raw);
+  return { items, hasNext: items.length === limit, offset, limit };
 }
 
 export async function getFactSheet(id: number): Promise<FactSheetResponse> {
-  return fetchJson<FactSheetResponse>(`${API_URL}/fact_sheet/${id}?user_id=1`);
+  const url = `/api/insight/fact-sheet?id=${id}&user_id=1`;
+  return fetchJson<FactSheetResponse>(url);
 }
+
+// NOT sure what its used for as its not used in the code
+// export const getDataGroup = async (id: number): Promise<DataGroupResponse> => {
+//   // Simulate API delay
+//   await new Promise((resolve) => setTimeout(resolve, 300));
+
+//   // TODO: Implement real API call to GET /api/insight/data
+
+//   const dataGroup = mockDataGroups.find((group) => group.id === id);
+//   if (!dataGroup) {
+//     throw new Error(`Data group with id ${id} not found`);
+//   }
+//   return dataGroup;
+// };

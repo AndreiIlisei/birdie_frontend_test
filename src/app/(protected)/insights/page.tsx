@@ -43,22 +43,20 @@ export default function InsightsPage() {
     try {
       // TODO: Replace with real API call to get fact sheets count
       const response = await listFactSheets(0, 1000, groupId);
-      return response?.length || 0;
+      return response?.items?.length || 0;
     } catch (error) {
       console.error('Error fetching data groups count:', error);
       return 0;
     }
   };
 
-  // Load data groups from insights service (now using mock data)
+  // Load data groups from insights service (now using API)
   useEffect(() => {
     const fetchDataGroups = async () => {
       try {
         setIsLoading(true);
         setError(null);
         
-        // TODO: Replace with real API call
-        // const response = await listDataGroups(0, 100);
         const response = await listDataGroups(0, 100);
         
         if (response && response.length > 0) {

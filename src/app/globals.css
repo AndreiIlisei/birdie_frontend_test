@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --color-info: #c7dcf9;
+    --color-info-light: #c7dcf9;
+    --color-success: #c0e8bb;
+    --color-pending: #ffdfaf;
+    --color-error: #f26969;
+
+    --brand-1: #380527; /*  brand 20 */
+    --brand-2: #f58ed3; /*  brand 180 */
+    --brand-3: #fcd9f0; /*  brand 220 */
+    --brand-4: #fdecf8; /*  brand 230 */
+    --brand-5: #fef6fb; /*  brand 240 */
+
+    --semi-brand-1: #fafafa; /*  system two - 10 */
+    --semi-brand-2: #f2f2f2; /*  system two - 20 */
+    --semi-brand-3: #f5f5f5;
+    --semi-brand-4: #ffffff;
+    --semi-brand-5: #ffffff;
+
+    --system-1: #666666; /*  system-10 */
+    --system-2: #c2c2c2; /*  system-100 */
+    --system-3: #cccccc; /*  system-110 */
+    --system-4: #e0e0e0; /*  system-130 */
+    --system-5: #ebebeb; /*  system-140 */
+    --system-6: #f5f5f5; /*  system-150 */
+    --system-7: #ADADAD; /*  system-80 */
+
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+
+  .dark:root {
+    --brand-1: #3af700;
+    --brand-2: #43a5d3;
+  }
+  body {
+    font-family: var(--font-rubik);
+    background-color: var(--color-bg-normal);
+    color: var(--brand-1);
+  }
+}
+
+@theme {
+  /* Registering colors with Tailwind CSS */
+  --color-brand-1: var(--brand-1);
+  --color-brand-2: var(--brand-2);
+  --color-brand-3: var(--brand-3);
+  --color-brand-4: var(--brand-4);
+  --color-brand-5: var(--brand-5);
+
+  --color-semi-brand-1: var(--semi-brand-1);
+  --color-semi-brand-2: var(--semi-brand-2);
+  --color-semi-brand-3: var(--semi-brand-3);
+  --color-semi-brand-4: var(--semi-brand-4);
+  --color-semi-brand-5: var(--semi-brand-5);
+
+  --color-system-1: var(--system-1);
+  --color-system-2: var(--system-2);
+  --color-system-3: var(--system-3);
+  --color-system-4: var(--system-4);
+  --color-system-5: var(--system-5);
+  --color-system-6: var(--system-6);
+  --color-system-7: var(--system-7);
+
+  --color-info: var(--color-info);
+  --color-success: var(--color-success);
+  --color-pending: var(--color-pending);
+  --color-error: var(--color-error);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@theme inline {
+  --font-rubik: var(--font-rubik);
+}
